@@ -37,6 +37,7 @@ async function startApplication() {
       });
     }
   }
+
   response = await fetch(
     "https://raw.githubusercontent.com/ddalgotrader/choose_the_best_time/main/prices_spreads.csv"
   );
@@ -45,7 +46,6 @@ async function startApplication() {
     : (spreads = "");
   // define global variable called titles to make it accessible by Python
   self.pyodide.globals.set("spreads_prices_CSV", spreads);
-
   console.log("Packages loaded!");
   self.postMessage({type: 'status', msg: 'Executing code'})
   const code = `
@@ -61,6 +61,7 @@ import pandas as pd
 import panel as pn
 import hvplot.pandas
 import io
+pn.extension(sizing_mode='stretch_width')
 csv_buffer = io.StringIO(spreads_prices_CSV)
 prices_df=pd.read_csv(csv_buffer, parse_dates=['Date'], index_col='Date')
 prices_df = prices_df.loc[:, prices_df.columns!='weekday']
@@ -81,17 +82,16 @@ def plot_cover_chart(symbol, freq):
     df_to_plot = pd.DataFrame(data_to_plot).reset_index()
     df_to_plot['not_covered'] = 1 - df_to_plot['covered']
     return df_to_plot.hvplot.bar(x='hour', y=['covered', 'not_covered'], stacked=True, color=['green', 'red'],
-                                 width=600, legend='top', ylabel='% of covered spread')
+                                 legend='top', ylabel='% of covered spread')
 
 
-pn.Row(pn.WidgetBox(symbol, freq), width=300)
-pn.Row(plot_cover_chart, background='WhiteSmoke')
+
 
 symbol.servable()
 freq.servable()
 
 
-pn.panel(pn.bind(plot_cover_chart, symbol, freq), width=600, height=400).servable(title='Comparison of cover spreads')
+pn.panel(pn.bind(plot_cover_chart, symbol, freq), height=600).servable(title='Comparison of cover spreads')
 
 
 await write_doc()
