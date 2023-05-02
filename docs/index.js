@@ -71,7 +71,7 @@ def plot_cover_chart(symbol, freq):
     df_to_plot = pd.DataFrame(data_to_plot).reset_index()
     df_to_plot['not_covered'] = 1 - df_to_plot['covered']
     return df_to_plot.hvplot.bar(x='hour', y=['covered', 'not_covered'], stacked=True, color=['green', 'red'],
-                                 width=800, legend='top')
+                                 width=800, legend='top', ylabel='% of covered spread')
 
 
 pn.Row(pn.WidgetBox(symbol, freq), width=300)
@@ -79,7 +79,8 @@ pn.Row(plot_cover_chart, background='WhiteSmoke')
 
 symbol.servable()
 freq.servable()
-pn.panel(pn.bind(plot_cover_chart, symbol, freq)).servable(title='Comparison of cover spreads');
+
+pn.panel(pn.bind(plot_cover_chart, symbol, freq), width=800, height=400).servable(title='Comparison of cover spreads')
 
 
 await write_doc()
