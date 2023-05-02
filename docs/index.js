@@ -37,6 +37,16 @@ async function startApplication() {
       });
     }
   }
+
+  response = await fetch(
+    "https://raw.githubusercontent.com/ddalgotrader/choose_the_best_time/main/prices_spreads.csv"
+  );
+  response.ok && response.status === 200
+    ? (spreads = await response.text())
+    : (spreads = "");
+  // define global variable called titles to make it accessible by Python
+  self.pyodide.globals.set("spreads_prices_CSV", spreads);
+
   console.log("Packages loaded!");
   self.postMessage({type: 'status', msg: 'Executing code'})
   const code = `
@@ -52,7 +62,9 @@ import pandas as pd
 import panel as pn
 import hvplot.pandas
 import io
-prices_df=pd.read_csv('/home/slawomir/Portfolio/blog_articles/Choose_the_best_time/prices_spreads.csv', parse_dates=['Date'], index_col='Date')
+
+csv_buffer = io.StringIO(spreads_prices_CSV)
+prices_df=pd.read_csv(csv_buffer, parse_dates=['Date'], index_col='Date')
 prices_df = prices_df.loc[:, prices_df.columns!='weekday']
 
 currencies = list(filter(lambda col: 'spread' not in col, prices_df.columns))
