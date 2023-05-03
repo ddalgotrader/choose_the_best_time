@@ -80,7 +80,8 @@ def plot_cover_chart(symbol, freq):
     df_cur['covered'] = df_cur['price_diff'] > df_cur[f'{symbol}_spread']
     data_to_plot = df_cur.dropna().groupby("hour").covered.mean()
     df_to_plot = pd.DataFrame(data_to_plot).reset_index()
-    df_to_plot['not_covered'] = 1 - df_to_plot['covered']
+    df_to_plot['covered']=df_to_plot['covered']*100
+    df_to_plot['not_covered'] = 100 - df_to_plot['covered']
     return df_to_plot.hvplot.bar(x='hour', y=['covered', 'not_covered'], stacked=True, color=['green', 'red'],
                                  legend='top', ylabel='% of covered spread')
 
@@ -91,7 +92,7 @@ symbol.servable()
 freq.servable()
 
 
-pn.panel(pn.bind(plot_cover_chart, symbol, freq), height=600).servable(title='Comparison of cover spreads')
+pn.panel(pn.bind(plot_cover_chart, symbol, freq), height=400).servable(title='Comparison of cover spreads')
 
 
 await write_doc()
